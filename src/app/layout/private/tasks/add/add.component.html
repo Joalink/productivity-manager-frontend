@@ -1,0 +1,68 @@
+<p-button (click)="showDialog()" label="Agregar Tarea"></p-button>
+
+<p-dialog
+  header="Agregar Tarea"
+  [modal]="true"
+  [(visible)]="displayAddDialog"
+  [breakpoints]="{ '1199px': '40vw', '575px': '50vw' }"
+  [style]="{ width: '40vw', height: '80vh' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="modal-content">
+
+    <!-- Descripción de la tarea -->
+    <div class="input-group">
+      <input
+        pInputText
+        id="description"
+        class="input-field"
+        autocomplete="off"
+        placeholder="Descripción de la tarea"
+        [(ngModel)]="description"
+      />
+    </div>
+
+    <!-- Duración de la tarea -->
+    <div class="card-container">
+      <span class="label">Duración en minutos</span>
+      <p-inputnumber
+        [(ngModel)]="duration"
+        [showButtons]="true"
+        buttonLayout="horizontal"
+        spinnerMode="horizontal"
+        inputId="horizontal"
+        [inputStyle]="{ width: '3rem' }"
+        [min] ="1"
+      >
+        <ng-template #incrementbuttonicon>
+          <span class="pi pi-plus"></span>
+        </ng-template>
+        <ng-template #decrementbuttonicon>
+          <span class="pi pi-minus"></span>
+        </ng-template>
+      </p-inputnumber>
+    </div>
+
+    <!-- Fecha de término -->
+    <span class="label">Fecha de término</span>
+    <div class="date-group">
+      <p-calendar
+        [(ngModel)]="date"
+        dateFormat="yy-mm-dd"
+        inline="true"
+      ></p-calendar>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="button-group">
+      <p-button label="Cancelar" severity="secondary" (click)="cancel()"></p-button>
+      <p-button label="Guardar" (click)="accept()"></p-button>
+    </div>
+
+  </div>
+</p-dialog>
+
+
+
+<ng-content></ng-content>
