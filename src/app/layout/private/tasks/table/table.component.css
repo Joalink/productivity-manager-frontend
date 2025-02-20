@@ -47,3 +47,22 @@
 
 
 /* Delete modal*/
+.delete-dialog .ui-dialog {
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto; 
+}
+
+.delete-dialog .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; 
+  padding: 10px;
+}
+
+.delete-dialog .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+

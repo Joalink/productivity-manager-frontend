@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CommonModule } from '@angular/common';
@@ -6,10 +6,11 @@ import { ApiService } from '@services/api.service';
 import { Tasks } from '@interfaces/tasks.model';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-// import { Subscription } from 'rxjs';
 import { CalendarModule } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
 import { InputNumber } from 'primeng/inputnumber';
+import { firstValueFrom } from 'rxjs';
+
 
 @Component({
   selector: 'app-table',
@@ -26,7 +27,6 @@ import { InputNumber } from 'primeng/inputnumber';
   templateUrl: './table.component.html',
   styleUrl: './table.component.css',
   standalone: true,
-  // providers: [ApiService],
 })
 export class TableComponent implements OnInit {
   tasks: Tasks[] = [];
@@ -46,39 +46,36 @@ export class TableComponent implements OnInit {
   private startTime: number = 0;
   private elapsedTime: number = 0;
 
-  // private taskSubscription!: Subscription;
-
   constructor(private apiService: ApiService) {}
 
   ngOnInit() {
     this.getTasks();
     // this.getTasksByStatus(this.status);
-
-    // this.taskSubscription = this.apiService.dataUpdate$.subscribe(() => {
-    //   this.getTasks();
-    // });
   }
 
-  // ngOnDestroy(): void {
-  //   this.taskSubscription.unsubscribe();
-  // }
-
-  getTasks() {
-    this.apiService.getData().subscribe((data: Tasks[]) => {
+  async getTasks() {
+    try {
+      const data: Tasks[] = await firstValueFrom(this.apiService.getData());
       this.tasks = data.filter((task) => task.status !== 'DELETED');
-      console.log('Tasks: ', data);
-    });
+      console.log('Tasks:', data);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+    }
   }
 
-  getTasksByStatus(status: string) {
-    this.apiService.getDataByStatus(status).subscribe((data: Tasks[]) => {
+  async getTasksByStatus(status: string) {
+    try {
+      const data: Tasks[] = await firstValueFrom(
+        this.apiService.getDataByStatus(status)
+      );
       this.tasks = data;
-      console.log('Tasks: ', data);
-    });
+      console.log('Tasks by status:', data);
+    } catch (error) {
+      console.error('Error fetching tasks by status:', error);
+    }
   }
 
   editTask(task: Tasks) {
-    console.log('Edit task: ', task);
     this.taskId = task.id;
     this.description = task.description;
     this.date = new Date(task.end_date);
@@ -87,26 +84,27 @@ export class TableComponent implements OnInit {
     this.displayEditDialog = true;
   }
 
-  EditTask() {
+  async EditTask() {
     const updatedTask = {
       description: this.description,
       end_date: this.date,
       duration: this.duration,
       status: this.status,
     };
+
     if (this.taskId === null) {
-      console.error('El ID de la tarea es nulo, no se puede actualizar.');
       return;
     }
+
     try {
-      this.apiService.updateData(this.taskId, updatedTask).subscribe((data) => {
-        console.log('Tarea actualizada:', data);
-        this.getTasks();
-      });
+      const data = await firstValueFrom(
+        this.apiService.updateData(this.taskId, updatedTask)
+      );
+      console.log('Task updated:', data);
+      await this.getTasks();
     } catch (error) {
-      console.error('Error adding task: ', error);
+      console.error('Error updating task:', error);
     }
-    console.log('Tarea editada:', this.taskId);
     this.displayEditDialog = false;
   }
 
@@ -115,29 +113,29 @@ export class TableComponent implements OnInit {
   }
 
   deleteTask(task: Tasks) {
-    console.log('Delete task: ', task);
     this.taskId = task.id;
     this.displayDeleteDialog = true;
   }
 
-  removeTask() {
+  async removeTask() {
     const updatedTask = {
       status: 'DELETED',
     };
+
     if (this.taskId === null) {
-      console.error('El ID de la tarea es nulo, no se puede actualizar.');
       return;
     }
+
     try {
-      this.apiService.updateData(this.taskId, updatedTask).subscribe((data) => {
-        console.log('Tarea eliminada:', data);
-        this.getTasks();
-      });
+      const data = await firstValueFrom(
+        this.apiService.updateData(this.taskId, updatedTask)
+      );
+      console.log('Task deleted:', data);
+      await this.getTasks(); // Refresca la tabla después de eliminar
     } catch (error) {
-      console.error('Error deleted task: ', error);
+      console.error('Error deleting task:', error);
     }
-    console.log('Tarea editada:', this.taskId);
-    this.displayEditDialog = false;
+    this.displayDeleteDialog = false;
   }
 
   cancelDelete() {
@@ -145,7 +143,6 @@ export class TableComponent implements OnInit {
   }
 
   startTask(task: Tasks) {
-    console.log('Start task: ', task);
     if (this.taskId !== null && this.taskId !== task.id) {
       this.isStarted[this.taskId] = false;
       this.resetTimer();
@@ -166,63 +163,46 @@ export class TableComponent implements OnInit {
   }
 
   pauseTask(task: Tasks) {
-    console.log('Stop task: ', task);
     if (this.taskId === task.id) {
       clearInterval(this.timer);
       this.activeAction = 'stop';
-      console.log(`⏸️ Tiempo pausado: ${this.formatTime(this.elapsedTime)}`);
     }
   }
 
   resetTask(task: Tasks) {
-    console.log('Reset task: ', task);
     if (this.taskId === task.id) {
       this.activeAction = 'reset';
       this.resetTimer();
-      console.log('🔄 Temporizador reiniciado.');
     }
   }
 
-  completeTask(task: Tasks) {
-    console.log('Complete task: ', task);
+  async completeTask(task: Tasks) {
     if (this.taskId === task.id) {
       clearInterval(this.timer);
       this.activeAction = 'complete';
 
       const updatedTask = {
         description: task.description,
-        end_date: new Date(task.end_date).toISOString(), // ✅ Formato ISO para end_date
+        end_date: new Date(task.end_date).toISOString(),
         duration: task.duration,
-        recorded_time: this.formatTime(this.elapsedTime), // ✅ Formato 'HH:mm:ss'
+        recorded_time: this.formatTime(this.elapsedTime),
         status: 'COMPLETED',
       };
 
-      console.log('🛠️ Payload enviado:', updatedTask);
-
       if (this.taskId === null) {
-        console.error('El ID de la tarea es nulo, no se puede actualizar.');
         return;
       }
 
-      console.log('🆔 ID de la tarea:', this.taskId);
-
       try {
-        this.apiService.updateData(this.taskId, updatedTask).subscribe({
-          next: (data) => {
-            console.log('✅ Tarea actualizada:', data);
-            this.getTasks();
-          },
-          error: (error) => {
-            console.error('❌ Error al actualizar tarea:', error);
-          },
-        });
+        const data = await firstValueFrom(
+          this.apiService.updateData(this.taskId, updatedTask)
+        );
+        console.log('Task updated:', data);
+        await this.getTasks();
       } catch (error) {
-        console.error('⚠️ Error inesperado al actualizar tarea:', error);
+        console.error('Error updating task:', error);
       }
 
-      console.log(
-        `✅ Tarea completada en: ${this.formatTime(this.elapsedTime)}`
-      );
       this.resetTimer();
       this.taskId = null;
     }

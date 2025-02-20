@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -25,6 +25,7 @@ import { InputNumber } from 'primeng/inputnumber';
   providers: [ApiService],
 })
 export class AddComponent {
+  @Output() taskAdded = new EventEmitter<void>();
   description: string = '';
   date: Date = new Date();
   duration: number = 1;
@@ -37,7 +38,7 @@ export class AddComponent {
     this.displayAddDialog = true;
   }
 
-  accept() {
+  async accept() {
     const newTask = {
       description: this.description,
       end_date: this.date,
@@ -46,16 +47,14 @@ export class AddComponent {
     };
 
     try {
-      this.apiService.createData(newTask).subscribe((data) => {
-        console.log('Task added: ', data);
+      await this.apiService.createData(newTask).subscribe(() => {
+        console.log('Task Added');
+        window.location.reload(); // 🔄 Recarga la página
       });
     } catch (error) {
-      console.error('Error adding task: ', error);
+      console.error('Error:', error);
     }
-
-    this.displayAddDialog = false;
   }
-
   cancel() {
     this.displayAddDialog = false;
   }

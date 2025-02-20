@@ -1,30 +1,30 @@
 <div class="card">
+
   <p-table [value]="tasks" [tableStyle]="{ 'min-width': '60rem' }">
     <ng-template #header>
       <tr>
-        <th pSortableColumn="id" style="width: 5%">
+        <th pSortableColumn="id">
           Id <p-sortIcon field="id" />
         </th>
-        <th pSortableColumn="description" style="width: 25%">
-          Descripcion <p-sortIcon field="description" />
+        <th pSortableColumn="description">
+          Descripción <p-sortIcon field="description" />
         </th>
-        <th pSortableColumn="end_date" style="width: 15%">
-          Fecha de termino <p-sortIcon field="end_date" />
+        <th pSortableColumn="end_date">
+          Fecha de término <p-sortIcon field="end_date" />
         </th>
-        <th style="width: 20%">
-          Duracion <p-sortIcon field="duration" />
+        <th>
+          Duración <p-sortIcon field="duration" />
         </th>
-        <th pSortableColumn="status" style="width: 15%">
+        <th pSortableColumn="status">
           Estado <p-sortIcon field="status" />
         </th>
-
-        <th style="width: 20%">
+        <th>
           Opciones <p-sortIcon field="options" />
         </th>
       </tr>
     </ng-template>
     <ng-template #body let-task>
-      <tr >
+      <tr>
         <td>{{ task.id }}</td>
         <td>{{ task.description }}</td>
         <td>{{ task.end_date }}</td>
@@ -36,7 +36,7 @@
             (click)="editTask(task)"
             severity="secondary"
             rounded
-            [disabled]="task.status === 'COMPLETED'" 
+            [disabled]="task.status === 'COMPLETED'"
           />
           <p-button
             icon="pi pi-trash"
@@ -49,28 +49,28 @@
             (click)="startTask(task)"
             [severity]="task.id === taskId && activeAction === 'start' ? 'success' : 'secondary'"
             rounded
-            [disabled]="!isStarted[task.id] || task.id === taskId && (task.status === 'COMPLETED')"
+            [disabled]="task.status === 'COMPLETED'"
           />
           <p-button
             icon="pi pi-pause"
             (click)="pauseTask(task)"
             [severity]="task.id === taskId && activeAction === 'stop' ? 'warn' : 'secondary'"
             rounded
-            [disabled]="!isStarted[task.id] || task.id === taskId && (task.status === 'COMPLETED')"
+            [disabled]="!isStarted[task.id] || task.status === 'COMPLETED'"
           />
           <p-button
             icon="pi pi-undo"
             (click)="resetTask(task)"
             [severity]="task.id === taskId && activeAction === 'reset' ? 'info' : 'secondary'"
             rounded
-            [disabled]="!isStarted[task.id] || task.id === taskId && (task.status === 'COMPLETED')"
+            [disabled]="!isStarted[task.id] ||task.status === 'COMPLETED'"
           />
           <p-button
             icon="pi pi-stop"
             (click)="completeTask(task)"
             [severity]="task.id === taskId && activeAction === 'delete' ? 'danger' : 'secondary'"
             rounded
-            [disabled]="!isStarted[task.id] "
+            [disabled]="!isStarted[task.id] ||task.status === 'COMPLETED'"
           />
         </td>
       </tr>
@@ -144,14 +144,21 @@
 
 
 
-  <!-- Modal de confirmación de eliminación -->
-  <p-dialog header="Confirmar eliminación" [modal]="true" [(visible)]="displayDeleteDialog"  [style]="{width: '400px'}">
-    <p>¿Seguro que deseas eliminar la tarea "{{ taskId }}"?</p>
-    <div class="flex justify-end gap-2">
-      <p-button  label="Cancelar" severity="secondary" (click)="cancelDelete()"></p-button>
-      <p-button  label="Eliminar" (click)="removeTask()"></p-button>
-    </div>
-  </p-dialog>
+<!-- Modal de confirmación de eliminación -->
+<p-dialog
+  header="Confirmar eliminación"
+  [modal]="true"
+  [(visible)]="displayDeleteDialog"
+  [style]="{ width: '450px', }"
+  class="delete-dialog"
+>
+  <p class="dialog-message">¿Seguro que deseas eliminar la tarea "{{ taskId }}"?</p>
+  <div class="button-group">
+    <p-button label="Cancelar" severity="secondary" (click)="cancelDelete()"></p-button>
+    <p-button label="Eliminar" severity="danger" (click)="removeTask()"></p-button>
+  </div>
+</p-dialog>
+
 
 </div>
 

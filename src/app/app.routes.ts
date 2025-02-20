@@ -4,6 +4,11 @@ import { TasksComponent } from './layout/private/tasks/tasks.component';
 
 export const routes: Routes = [
   {
+    path: '',
+    redirectTo: '/tasks', // Redirige a la ruta 'tasks' por defecto
+    pathMatch: 'full', // Asegúrate de que coincida con la ruta completa
+  },
+  {
     path: 'dashboard',
     component: DashboardComponent,
   },
